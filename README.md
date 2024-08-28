@@ -18,7 +18,7 @@ ChatBox to OpenWebUI 是一个在线工具，帮助用户便捷地将 ChatBox �
 
 ## 如何使用
 
-1. 访问 [ChatBox2OpenWebUI](https://cooksleep.github.io/ChatBox2OpenWebUI/)。
+1. 访问 [ChatBox to Open WebUI](https://cooksleep.github.io/ChatBox2OpenWebUI/)。
 2. 在 ChatBox 的`设置-其它-备份与恢复`中**只勾选`聊天记录`**，然后导出。
 3. 点击`选择文件`按钮，选择刚刚从 ChatBox 导出的 JSON 文件。
 4. 查看上传的对话列表，根据需要选择或取消选择从 ChatBox 中导出的对话。
