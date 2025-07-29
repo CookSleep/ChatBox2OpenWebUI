@@ -44,6 +44,10 @@ export function convertConversation(conversation, model) {
         content += "\n[该消息原本包含图片，但未被保存]";
       }
 
+      if (msg.reasoningContent && msg.reasoningContent.length > 0) {
+        content = `<details type=\"reasoning\" done=\"true\" duration=\"0\">\n<summary>Deeply thought</summary>\n> ${msg.reasoningContent.replaceAll("\n", "\n> ")}</details>${content}`;
+      }
+
       let message = {
         id: msg.id,
         parentId: lastMessageId,
