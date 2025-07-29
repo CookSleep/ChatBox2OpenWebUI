@@ -127,7 +127,8 @@ function handleFileUpload(event) {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        const chatSessions = data['chat-sessions'] || [];
+        const chatSessionList = data['chat-sessions-list']
+        const chatSessions = chatSessionList.map((sessionMeta) => data[`session:${sessionMeta.id}`]) || data['chat-sessions'] || [];
 
         chatSessions.forEach(conv => {
           if (conv.messages && conv.messages.length > 0) {

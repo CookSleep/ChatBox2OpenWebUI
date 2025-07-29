@@ -15,6 +15,17 @@ export function isValidConversation(messages) {
   return true;
 }
 
+function getContent(msg) {
+  if (msg.content && msg.content.length > 0) {
+    return msg.content;
+  }
+  // If contentParts is present, filter for text parts and join them
+  if (msg.contentParts && msg.contentParts.length > 0) {
+    return msg.contentParts.filter(part => part.type == 'text').map(part => part.text).join("");
+  }
+  return "";
+}
+
 export function convertConversation(conversation, model) {
   let messages = [];
   let messageDict = {};
@@ -23,12 +34,12 @@ export function convertConversation(conversation, model) {
 
   for (let msg of conversation.messages) {
     if (msg.role === SYSTEM_ROLE) {
-      systemContent = msg.content;
+      systemContent = getContent(msg);
       continue;
     }
 
     if (msg.role === USER_ROLE || msg.role === ASSISTANT_ROLE) {
-      let content = msg.content;
+      let content = getContent(msg);
       if (msg.pictures && msg.pictures.length > 0) {
         content += "\n[该消息原本包含图片，但未被保存]";
       }
