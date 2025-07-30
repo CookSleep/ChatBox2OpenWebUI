@@ -58,7 +58,7 @@
     <div class="section steps-section">
       <h2>聊天记录转移步骤</h2>
       <ol>
-        <li>在ChatBox的<code>设置-其它-备份与恢复</code>中<strong>只勾选<code>聊天记录</code></strong>，然后导出</li>
+        <li>在ChatBox的<code>设置</code> > <code>常规设置</code> > <code>数据备份</code>中，点击<code>导出勾选数据</code></li>
         <li>点击本页面的<code>选择文件</code>按钮，选择刚刚从ChatBox导出的JSON文件
           <blockquote>本网页不会收集也无法收集您的个人数据，一切操作均在您的浏览器本地进行</blockquote>
         </li>
@@ -127,13 +127,28 @@ function handleFileUpload(event) {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        const chatSessionList = data['chat-sessions-list']
-        const chatSessions = chatSessionList.map((sessionMeta) => data[`session:${sessionMeta.id}`]) || data['chat-sessions'] || [];
+        
+        // 检查是否为新格式的ChatBox导出文件
+        if (!data.__exported_items || !data['chat-sessions-list']) {
+          throw new Error('不是有效的ChatBox导出文件');
+        }
+        
+        // 只处理包含对话记录的导出
+        if (!data.__exported_items.includes('conversations')) {
+          throw new Error('导出文件中不包含对话记录');
+        }
+        
+        const chatSessionList = data['chat-sessions-list'];
+        const chatSessions = chatSessionList.map((sessionMeta) => data[`session:${sessionMeta.id}`]).filter(session => session);
 
         chatSessions.forEach(conv => {
           if (conv.messages && conv.messages.length > 0) {
             const hasWarning = !isValidConversation(conv.messages);
-            const hasImages = conv.messages.some(msg => msg.pictures && msg.pictures.length > 0);
+            // 检查是否包含图片（支持新格式的contentParts）
+            const hasImages = conv.messages.some(msg => {
+              if (msg.contentParts && msg.contentParts.some(part => part.type === 'image')) return true;
+              return false;
+            });
             conversations.value.push({
               id: uuidv4(),
               title: conv.name || "未命名对话",
@@ -182,11 +197,17 @@ function showWarningModal(errorConversations, imageConversations) {
 
   if (errorConversations.length > 0) {
     content += `
-      <p><strong>以下对话包含不成对的消息（存在连续的User/Assistant消息），可能导致Open WebUI功能异常：</strong></p>
+      <p><strong>以下对话存在问题，可能导致Open WebUI功能异常：</strong></p>
       <ul>
         ${errorConversations.map(title => `<li>${title}</li>`).join('')}
       </ul>
-      <p>如果您确定要转换这些对话，建议先在ChatBox中手动删除不成对消息。</p>
+      <p>问题可能包括：</p>
+      <ul>
+        <li>连续的相同角色消息（连续的User或Assistant消息）</li>
+        <li>中间消息包含错误（Open WebUI只允许最后一条消息有错误）</li>
+        <li>空内容消息</li>
+      </ul>
+      <p>建议在ChatBox中手动修复这些问题后再进行转换。</p>
       <hr style="border-color: #ccc;"> <!-- 添加分割线 -->
     `;
   }
